@@ -1,22 +1,48 @@
 replicaCount: 1
 
+name: server
+
+annotations:
+  {}
+  # annot-key: annot-value
+
+additionalLabels:
+  {}
+  # lbl-key: lbl-value
+
 image:
   repository: anthonyraymond/joal
-  tag: latest
+  tag: # uses the chart appVersion per default
   pullPolicy: IfNotPresent
 
 dnsPolicy: "None"
 
+config:
+  minUploadRate: # Min upload rate (kB/s) (default 500)
+  maxUploadRate: # Max upload rate (kB/s) (default 15000)
+  simultaneousSeed: # Number of simultaneous seeds (default 5)
+  keepTorrentWithZeroLeechers: # If checked, when a torrent reach 0 peers it will seed at 0 kB/s. Otherwise, when a torrent reach 0 peers it will be removed. (default false)
+  uploadRatioTarget: # Set to -1.0 for indefinite seeding. Note: Uploaded amount resets to 0 upon Joal restart. (default -1)
+
+  # path prefix must be pasted in your browser while accessing joal.
+  # You can fix it yourself or use the random generated one
+  joalUiPathPrefix: # To be pasted in your UI. (default randAlphaNum 25)
+  joalUiSecretToken: # To be pasted in your UI config. (default randAlphaNum 25)
+
 env:
-  - name: KEY
-    value: "VALUE"
+  []
+  # - name: KEY
+  #   value: VALUE
+
+containerPorts:
+  http: 9095
 
 service:
   type: ClusterIP
   port: 80
 
 ingress:
-  enabled: false
+  enabled: true
   annotations:
     kubernetes.io/ingress.class: nginx
     kubernetes.io/tls-acme: "true"
@@ -24,26 +50,51 @@ ingress:
   hosts:
     - joal.example.org
   tls:
-    - secretName: joal.example.org
+    - secretName: joal-example-org
       hosts:
         - joal.example.org
 
 volumes:
-  - name: myvolume
+  - name: joal-config
     persistentVolumeClaim:
-      claimName: myvolume
+      claimName: joal-config
 
 volumeMounts:
-  - name: myvolume
+  - name: joal-config
     mountPath: "/data"
-    subPath: "configs/transmission-data"
 
-podSecurityContext: {}
+securityContext:
+  {}
+  # runAsUser: 999
+  # runAsGroup: 999
+  # fsGroup: 999
 
-resources: {}
+resources:
+  {}
+  # limits:
+  #   cpu: 500m
+  #   memory: 512Mi
+  # requests:
+  #   cpu: 250m
+  #   memory: 256Mi
 
 nodeSelector: {}
 
 tolerations: []
 
-affinity: {}
+affinity:
+  {}
+  # # -- Default pod anti-affinity rules. Either: `none`, `soft` or `hard`
+  # podAntiAffinity: soft
+  # # Node affinity rules
+  # nodeAffinity:
+  #   # -- Default node affinity rules. Either: `none`, `soft` or `hard`
+  #   type: hard
+  #   # -- Default match expressions for node affinity
+  #   matchExpressions:
+  #     []
+  #     # - key: topology.kubernetes.io/zone
+  #     #   operator: In
+  #     #   values:
+  #     #    - antarctica-east1
+  #     #    - antarctica-west1

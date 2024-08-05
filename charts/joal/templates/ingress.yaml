@@ -1,19 +1,19 @@
 {{- if .Values.ingress.enabled -}}
 {{- $fullName := include "joal.fullname" . -}}
+{{- $servicePort := .Values.containerPorts.http | default "9095" -}}
 {{- $ingressPath := .Values.ingress.path -}}
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: {{ $fullName }}
   labels:
-    app: {{ template "joal.name" . }}
-    chart: {{ template "joal.chart" . }}
-    release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
-{{- with .Values.ingress.annotations }}
+    {{- include "joal.labels" (dict "context" . "component" .Values.name "name" .Values.name) | nindent 4 }}
+  {{- with .Values.ingress.annotations }}
   annotations:
-{{ toYaml . | indent 4 }}
-{{- end }}
+    {{- range $key, $value := . }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+  {{- end }}
 spec:
 {{- if .Values.ingress.tls }}
   tls:
@@ -27,12 +27,20 @@ spec:
 {{- end }}
   rules:
   {{- range .Values.ingress.hosts }}
-    - host: {{ . }}
+    - host: {{ .host }}
       http:
         paths:
           - path: {{ $ingressPath }}
+            pathType: {{ default "Prefix" .pathType }}
             backend:
+              {{- if semverCompare ">=1.19-0" $.Capabilities.KubeVersion.GitVersion }}
+              service:
+                name: {{ $fullName }}
+                port:
+                  number: {{ $servicePort }}
+              {{- else }}
               serviceName: {{ $fullName }}
               servicePort: http
+              {{- end }}
   {{- end }}
 {{- end }}

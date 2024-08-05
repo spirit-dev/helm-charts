@@ -3,17 +3,19 @@ kind: Service
 metadata:
   name: {{ template "joal.fullname" . }}
   labels:
-    app: {{ template "joal.name" . }}
-    chart: {{ template "joal.chart" . }}
-    release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
+    {{- include "joal.labels" (dict "context" . "component" .Values.name "name" .Values.name) | nindent 4 }}
+  {{- with .Values.annotations }}
+  annotations:
+    {{- range $key, $value := . }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+  {{- end }}
 spec:
   type: {{ .Values.service.type }}
   ports:
-    - port: {{ .Values.service.port }}
-      targetPort: 9091
+    - port: {{ .Values.containerPorts.http | default "9095" }}
+      targetPort: http
       protocol: TCP
       name: http
   selector:
-    app: {{ template "joal.name" . }}
-    release: {{ .Release.Name }}
+    {{- include "joal.selectorLabels" (dict "context" . "name" .Values.name) | nindent 4 }}
