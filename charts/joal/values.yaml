@@ -12,22 +12,30 @@ additionalLabels:
 
 image:
   repository: anthonyraymond/joal
-  tag: # uses the chart appVersion per default
+  # uses the chart appVersion per default
+  tag:
   pullPolicy: IfNotPresent
 
 dnsPolicy: "None"
 
 config:
-  minUploadRate: # Min upload rate (kB/s) (default 500)
-  maxUploadRate: # Max upload rate (kB/s) (default 15000)
-  simultaneousSeed: # Number of simultaneous seeds (default 5)
-  keepTorrentWithZeroLeechers: # If checked, when a torrent reach 0 peers it will seed at 0 kB/s. Otherwise, when a torrent reach 0 peers it will be removed. (default false)
-  uploadRatioTarget: # Set to -1.0 for indefinite seeding. Note: Uploaded amount resets to 0 upon Joal restart. (default -1)
+  # Min upload rate (kB/s) (default 500)
+  minUploadRate:
+  # Max upload rate (kB/s) (default 15000)
+  maxUploadRate:
+  # Number of simultaneous seeds (default 5)
+  simultaneousSeed:
+  # If checked, when a torrent reach 0 peers it will seed at 0 kB/s. Otherwise, when a torrent reach 0 peers it will be removed. (default false)
+  keepTorrentWithZeroLeechers:
+  # Set to -1.0 for indefinite seeding. Note: Uploaded amount resets to 0 upon Joal restart. (default -1)
+  uploadRatioTarget:
 
   # path prefix must be pasted in your browser while accessing joal.
   # You can fix it yourself or use the random generated one
-  joalUiPathPrefix: # To be pasted in your UI. (default randAlphaNum 25)
-  joalUiSecretToken: # To be pasted in your UI config. (default randAlphaNum 25)
+  # To be pasted in your UI. (default randAlphaNum 25)
+  joalUiPathPrefix:
+  # To be pasted in your UI config. (default randAlphaNum 25)
+  joalUiSecretToken:
 
 env:
   []
