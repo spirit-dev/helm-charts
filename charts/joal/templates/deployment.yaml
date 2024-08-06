@@ -3,55 +3,122 @@ kind: Deployment
 metadata:
   name: {{ template "joal.fullname" . }}
   labels:
-    app: {{ template "joal.name" . }}
-    chart: {{ template "joal.chart" . }}
-    release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
+    {{- include "joal.labels" (dict "context" . "component" .Values.name "name" .Values.name) | nindent 4 }}
+  {{- with .Values.annotations }}
+  annotations:
+    {{- range $key, $value := . }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+  {{- end }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: {{ template "joal.name" . }}
-      release: {{ .Release.Name }}
+      {{- include "joal.selectorLabels" (dict "context" . "name" .Values.name) | nindent 6 }}
+  strategy:
+    type: Recreate
   template:
     metadata:
       labels:
-        app: {{ template "joal.name" . }}
-        release: {{ .Release.Name }}
+        {{- include "joal.labels" (dict "context" . "component" .Values.name "name" .Values.name) | nindent 8 }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/cm-config.yaml") . | sha256sum }}
+        checksum/init-scripts: {{ include (print $.Template.BasePath "/cm-init-scripts.yaml") . | sha256sum }}
+      {{- with .Values.annotations }}
+        {{- range $key, $value := . }}
+        {{ $key }}: {{ $value | quote }}
+        {{- end }}
+      {{- end }}
     spec:
-    {{- with .Values.volumes }}
       volumes:
-{{ toYaml .Values.volumes | indent 6 }}
-    {{- end }}
+      {{- with .Values.volumes }}
+        {{- toYaml . | nindent 6}}
+      {{- end }}
+      - name: {{ template "joal.fullname" . }}-init-scripts
+        configMap:
+          defaultMode: 493
+          items:
+            - key: prepare.sh
+              path: prepare.sh
+          name: {{ template "joal.fullname" . }}-init-scripts
+      - name: {{ template "joal.fullname" . }}-config
+        configMap:
+          defaultMode: 493
+          items:
+            - key: default-1.0.0.client
+              path: default-1.0.0.client
+            - key: config.json
+              path: config.json
+          name: {{ template "joal.fullname" . }}-config
+      {{- with .Values.securityContext }}
       securityContext:
-{{ toYaml .Values.podSecurityContext | indent 8 }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      initContainers:
+        - name: prepare-joal
+          image: alpine:latest
+          imagePullPolicy: IfNotPresent
+          command:
+            - /bin/sh
+            - /scripts/prepare.sh
+          volumeMounts:
+            - name: {{ template "joal.fullname" . }}-init-scripts
+              mountPath: /scripts
+            - name: {{ template "joal.fullname" . }}-config
+              mountPath: /temp
+          {{- with .Values.volumeMounts }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          env:
+            - name: JOAL_CONF
+              value: "/data"
+            - name: TEMP_STORAGE
+              value: "/temp"
       containers:
         - name: {{ .Chart.Name }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          image: "{{ .Values.image.repository }}:{{ default (include "joal.defaultTag" .) .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           env:
-{{ toYaml .Values.env | indent 12 }}
+            {{- with .Values.env }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+            - name: SPRING_MAIN_WEB_ENVIRONMENT
+              value: "true"
+            - name: SERVER_PORT
+              value: {{ (.Values.containerPorts.http | default "9095") | quote }}
+            - name: JOAL_CONF
+              value: "/data"
+            - name: JOAL_UI_PATH_PREFIX
+              value: {{ .Values.config.joalUiPathPrefix | default (randAlphaNum 25 | quote) }}
+            - name: JOAL_UI_SECRET_TOKEN
+              value: {{ .Values.config.joalUiSecretToken | default (randAlphaNum 25 | quote) }}
           ports:
             - name: http
-              containerPort: 9091
+              containerPort: {{ .Values.containerPorts.http | default "9095" }}
               protocol: TCP
+          {{- with .Values.securityContext }}
           securityContext:
-{{ toYaml .Values.securityContext | indent 12 }}
-    {{- with .Values.volumeMounts }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           volumeMounts:
-{{ toYaml .Values.volumeMounts | indent 12 }}
-    {{- end }}
+            - name: {{ template "joal.fullname" . }}-init-scripts
+              mountPath: /scripts
+            - name: {{ template "joal.fullname" . }}-config
+              mountPath: /temp
+          {{- with .Values.volumeMounts }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           resources:
-{{ toYaml .Values.resources | indent 12 }}
-    {{- with .Values.nodeSelector }}
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
       nodeSelector:
-{{ toYaml . | indent 8 }}
-    {{- end }}
-    {{- with .Values.affinity }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
       affinity:
-{{ toYaml . | indent 8 }}
-    {{- end }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
     {{- with .Values.tolerations }}
       tolerations:
-{{ toYaml . | indent 8 }}
+        {{ toYaml . | indent 8 }}
     {{- end }}
