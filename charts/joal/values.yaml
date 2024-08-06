@@ -50,13 +50,13 @@ service:
   port: 80
 
 ingress:
-  enabled: true
+  enabled: false
   annotations:
     kubernetes.io/ingress.class: nginx
     kubernetes.io/tls-acme: "true"
   path: /
   hosts:
-    - joal.example.org
+    - host: joal.example.org
   tls:
     - secretName: joal-example-org
       hosts:
