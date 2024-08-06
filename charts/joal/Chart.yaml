@@ -2,7 +2,7 @@ apiVersion: v2
 appVersion: "2.1.36"
 description: JOAL is not designed to help or encourage you downloading illegal materials ! You must respect the law applicable in your country. I couldn't be held responsible for illegal activities performed by your usage of JOAL.
 name: joal
-version: "1.0.0"
+version: "1.1.0"
 icon: https://spirit-dev.github.io/helm-charts/joal/logo/joal.png
 home: https://github.com/spirit-dev/helm-charts
 keywords:
