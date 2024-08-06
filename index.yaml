@@ -3,6 +3,24 @@ entries:
   joal:
   - apiVersion: v2
     appVersion: 2.1.36
+    created: "2024-08-06T13:53:36.942394669Z"
+    description: JOAL is not designed to help or encourage you downloading illegal
+      materials ! You must respect the law applicable in your country. I couldn't
+      be held responsible for illegal activities performed by your usage of JOAL.
+    digest: 30dabbb1238ae36204a972ca21d993d5241936af98ae8ed4fb6496b3b12a4cd9
+    home: https://github.com/spirit-dev/helm-charts
+    icon: https://spirit-dev.github.io/helm-charts/joal/logo/joal.png
+    keywords:
+    - torrent
+    - joal
+    name: joal
+    sources:
+    - https://github.com/spirit-dev/helm-charts
+    urls:
+    - https://github.com/spirit-dev/helm-charts/releases/download/joal-1.1.0/joal-1.1.0.tgz
+    version: 1.1.0
+  - apiVersion: v2
+    appVersion: 2.1.36
     created: "2024-08-02T15:29:34.234852479Z"
     description: JOAL is not designed to help or encourage you downloading illegal
       materials ! You must respect the law applicable in your country. I couldn't
@@ -19,4 +37,4 @@ entries:
     urls:
     - https://github.com/spirit-dev/helm-charts/releases/download/joal-1.0.0/joal-1.0.0.tgz
     version: 1.0.0
-generated: "2024-08-02T15:29:34.234887154Z"
+generated: "2024-08-06T13:53:36.942406822Z"
